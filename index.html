@@ -1,0 +1,136 @@
+<!DOCTYPE html> 
+<html>
+<head>
+    <title>Memory Research Lab</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #1a1a1a; color: white; display: flex; justify-content: center; padding-top: 30px; }
+        .card { background: #2d2d2d; padding: 2rem; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 500px; text-align: center; border: 1px solid #444; }
+        .tab { display: none; }
+        .active { display: block; }
+        button { background: #00ce7c; color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-size: 1.1rem; font-weight: bold; margin-top: 20px; }
+        button:hover { background: #00a563; }
+        #words, #check-list { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin: 20px 0; }
+        .word-item { background: #3d3d3d; padding: 5px; border-radius: 4px; font-size: 0.9rem; border-left: 3px solid #00ce7c; }
+        .timer-display { font-size: 3.5rem; font-weight: bold; color: #ff4757; margin: 10px 0; font-family: monospace; }
+        .round-indicator { color: #888; text-transform: uppercase; letter-spacing: 2px; font-size: 0.8rem; }
+        audio { display: none; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="round-indicator" id="round-title">Round 1 of 3</div>
+
+        <div id="start-tab" class="tab active">
+            <h1 id="next-genre-text">Baseline: Silence</h1>
+            <p>1. Memorize (30s)<br>2. Think (10s)<br>3. Write (60s)</p>
+            <button onclick="startTest()">Begin Round</button>
+        </div>
+
+        <div id="words-tab" class="tab">
+            <h1>Memorize</h1>
+            <div class="timer-display" id="words-time">30</div>
+            <div id="words"></div>
+        </div>
+
+        <div id="think-tab" class="tab">
+            <h1>Think</h1>
+            <div class="timer-display" id="think-time">10</div>
+            <p>Keep the words in your head.</p>
+        </div>
+
+        <div id="write-tab" class="tab">
+            <h1>Write!</h1>
+            <div class="timer-display" id="write-time">60</div>
+            <p>Write everything you remember on the paper.</p>
+        </div>
+
+        <div id="check-tab" class="tab">
+            <h1>Check Results</h1>
+            <p>Compare the paper to this list:</p>
+            <div id="check-list"></div>
+            <button id="next-btn" onclick="nextRound()">Next Round</button>
+        </div>
+
+        <div id="finish-tab" class="tab">
+            <h1>Experiment Done</h1>
+            <p>All 3 rounds complete. Thank the subject!</p>
+            <button onclick="location.reload()">Reset for New Person</button>
+        </div>
+    </div>
+
+    <audio id="audio-silence" src="silence.mp3"></audio>
+    <audio id="audio-drums" src="drums.mp3"></audio>
+    <audio id="audio-lofi" src="lofi.mp3"></audio>
+    <audio id="audio-pop" src="pop.mp3"></audio>
+    <audio id="audio-metal" src="metal.mp3"></audio>
+    <audio id="audio-edm" src="edm.mp3"></audio>
+
+<script>
+const wordsMaster = ["Anchor", "Apple", "Bacon", "Basket", "Beaver", "Blanket", "Blossom", "Bottle", "Bottom", "Bracelet", "Bridge", "Bubble", "Bucket", "Budget", "Butter", "Button", "Camel", "Candle", "Canvas", "Canyon", "Carpet", "Castle", "Channel", "Cherry", "Closet", "Clover", "Coffee", "Comet", "Copper", "Corner", "Cotton", "Country", "Creature", "Crystal", "Curtain", "Cushion", "Dinner", "Doctor", "Dolphin", "Donkey", "Dragon", "Dreamer", "Driver", "Eagle", "Engine", "Expert", "Factor", "Farmer", "Father", "Feather", "Fellow", "Flavor", "Flower", "Forest", "Fossil", "Fountain", "Friction", "Furnace", "Garage", "Garden", "Garlic", "Giant", "Glacier", "Guitar", "Hammer", "Handle", "Harbor", "Harvest", "Helmet", "Hollow", "Honey", "Hunter", "Island", "Jacket", "Jelly", "Jewel", "Jordan", "Journey", "Jungle", "Kettle", "Keyboard", "Kitchen", "Ladder", "Lantern", "Lawyer", "Leader", "Lemon", "Letter", "Lightning", "Lizard", "Magnet", "Mansion", "Market", "Melon", "Member", "Metal", "Mirror", "Moment", "Monkey", "Monster", "Morning", "Mother", "Mountain", "Muffin", "Muscle", "Museum", "Music", "Napkin", "Nature", "Necklace", "Needle", "Noodle", "Number", "Ocean", "Office", "Orange", "Orchid", "Outlet", "Package", "Pancake", "Panther", "Paper", "Parent", "Parrot", "Pattern", "Pebble", "Pencil", "Pepper", "Person", "Picture", "Pillow", "Pilot", "Planet", "Plastic", "Platter", "Pocket", "Poem", "Poison", "Powder", "Problem", "Puddle", "Pumpkin", "Puppy", "Puzzle", "Rabbit", "Racket", "Record", "Ribbon", "River", "Robot", "Rocket", "Saddle", "Sailor", "Salad", "School", "Season", "Shadow", "Shelter", "Shovel", "Signal", "Silver", "Slipper", "Soccer", "Soldier", "Spider", "Spirit", "Stadium", "Station", "Sticker", "Stranger", "Sugar", "Summer", "Tablet", "Target", "Temple", "Ticket", "Tiger", "Toilet", "Token", "Tractor", "Traffic", "Travel", "Treasure", "Tunnel", "Turtle", "Valley", "Velvet", "Vessel", "Victim", "Village", "Wagon", "Weather", "Wedding", "Window", "Winter", "Wizard", "Worker", "Zebra", "Zero", "Zipper"];
+
+let round = 1;
+let currentWords = [];
+let genres = ["drums", "lofi", "pop", "metal", "edm"];
+let chosenGenres = ["silence"]; // Round 1 is always silence
+
+// Shuffle and pick 2 random genres for Round 2 and 3
+let shuffledExtra = genres.sort(() => 0.5 - Math.random()).slice(0, 2);
+chosenGenres.push(...shuffledExtra);
+
+function switchTab(tabId) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById(tabId + '-tab').classList.add('active');
+}
+
+function startTimer(duration, displayId, onEnd) {
+    let timeLeft = duration;
+    const display = document.getElementById(displayId);
+    display.textContent = timeLeft;
+    let interval = setInterval(() => {
+        timeLeft--;
+        display.textContent = timeLeft;
+        if (timeLeft <= 0) {
+            clearInterval(interval);
+            onEnd();
+        }
+    }, 1000);
+}
+
+function startTest() {
+    const currentGenre = chosenGenres[round - 1];
+    const audio = document.getElementById("audio-" + currentGenre);
+    
+    // Reset words
+    currentWords = wordsMaster.sort(() => 0.5 - Math.random()).slice(0, 15);
+    document.getElementById("words").innerHTML = currentWords.map(w => `<div class="word-item">${w}</div>`).join('');
+    document.getElementById("check-list").innerHTML = currentWords.map(w => `<div class="word-item">${w}</div>`).join('');
+    
+    switchTab('words');
+    if(audio) audio.play();
+
+    startTimer(30, "words-time", () => {
+        switchTab('think');
+        startTimer(10, "think-time", () => {
+            switchTab('write');
+            startTimer(60, "write-time", () => {
+                if(audio) { audio.pause(); audio.currentTime = 0; }
+                switchTab('check');
+                if (round === 3) document.getElementById("next-btn").innerText = "Finish Experiment";
+            });
+        });
+    });
+}
+
+function nextRound() {
+    if (round < 3) {
+        round++;
+        document.getElementById("round-title").innerText = `Round ${round} of 3`;
+        document.getElementById("next-genre-text").innerText = "Next Genre: " + chosenGenres[round-1].toUpperCase();
+        switchTab('start');
+    } else {
+        switchTab('finish');
+    }
+}
+</script>
+</body>
+</html>
