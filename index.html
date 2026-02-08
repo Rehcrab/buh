@@ -1,28 +1,137 @@
+
 <!DOCTYPE html> 
 <html>
 <head>
     <title>Memory Research Lab</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #1a1a1a; color: white; display: flex; justify-content: center; padding-top: 30px; }
-        .card { background: #2d2d2d; padding: 2rem; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 500px; text-align: center; border: 1px solid #444; }
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            background: #1a1a1a; 
+            color: white; 
+            display: flex; 
+            justify-content: center; 
+            padding-top: 30px; 
+            margin: 0;
+        }
+        .card { 
+            background: #2d2d2d; 
+            padding: 3rem; 
+            border-radius: 15px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
+            width: 700px; 
+            text-align: center; 
+            border: 1px solid #444; 
+        }
         .tab { display: none; }
         .active { display: block; }
-        button { background: #00ce7c; color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-size: 1.1rem; font-weight: bold; margin-top: 20px; }
+        
+        button { 
+            background: #00ce7c; 
+            color: white; 
+            border: none; 
+            padding: 18px 40px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-size: 1.4rem; 
+            font-weight: bold; 
+            margin-top: 20px; 
+        }
         button:hover { background: #00a563; }
-        #words, #check-list { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin: 20px 0; }
-        .word-item { background: #3d3d3d; padding: 5px; border-radius: 4px; font-size: 0.9rem; border-left: 3px solid #00ce7c; }
-        .timer-display { font-size: 3.5rem; font-weight: bold; color: #ff4757; margin: 10px 0; font-family: monospace; }
-        .round-indicator { color: #888; text-transform: uppercase; letter-spacing: 2px; font-size: 0.8rem; }
+        
+        .skip-btn {
+            background: #ff9f43;
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            margin-top: 15px;
+        }
+        .skip-btn:hover { background: #ee8c31; }
+        
+        h1 { 
+            font-size: 3rem; 
+            margin: 20px 0; 
+        }
+        
+        p { 
+            font-size: 1.4rem; 
+            line-height: 1.8; 
+        }
+        
+        #words, #check-list { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr 1fr; 
+            gap: 15px; 
+            margin: 30px 0; 
+        }
+        
+        .word-item { 
+            background: #3d3d3d; 
+            padding: 15px; 
+            border-radius: 8px; 
+            font-size: 1.5rem; 
+            font-weight: bold;
+            border-left: 4px solid #00ce7c; 
+        }
+        
+        .timer-display { 
+            font-size: 8rem; 
+            font-weight: bold; 
+            color: #ff4757; 
+            margin: 30px 0; 
+            font-family: monospace; 
+        }
+        
+        .round-indicator { 
+            color: #888; 
+            text-transform: uppercase; 
+            letter-spacing: 2px; 
+            font-size: 1.1rem; 
+            margin-bottom: 10px;
+        }
+        
+        .genre-display {
+            background: #ff4757;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 1.6rem;
+            font-weight: bold;
+            margin: 20px 0;
+            display: inline-block;
+        }
+        
+        .musician-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+        
+        .musician-btn {
+            padding: 20px 50px;
+            font-size: 1.5rem;
+        }
+        
         audio { display: none; }
     </style>
 </head>
 <body>
     <div class="card">
         <div class="round-indicator" id="round-title">Round 1 of 3</div>
+        <div class="genre-display" id="genre-display" style="display: none;">Genre: SILENCE</div>
 
-        <div id="start-tab" class="tab active">
+        <!-- NEW: Musician Question Tab -->
+        <div id="musician-tab" class="tab active">
+            <h1>Before We Start</h1>
+            <p>Do you play a musical instrument consistently<br>(at least once per two weeks) for 1+ year?</p>
+            <div class="musician-buttons">
+                <button class="musician-btn" onclick="setMusician(true)">YES - I'm a Musician</button>
+                <button class="musician-btn" onclick="setMusician(false)">NO - Not a Musician</button>
+            </div>
+        </div>
+
+        <div id="start-tab" class="tab">
             <h1 id="next-genre-text">Baseline: Silence</h1>
-            <p>1. Memorize (30s)<br>2. Think (10s)<br>3. Write (60s)</p>
+            <p style="font-size: 1.6rem;">1. Memorize (30s)<br>2. Think (10s)<br>3. Write (60s)</p>
             <button onclick="startTest()">Begin Round</button>
         </div>
 
@@ -30,30 +139,36 @@
             <h1>Memorize</h1>
             <div class="timer-display" id="words-time">30</div>
             <div id="words"></div>
+            <button class="skip-btn" onclick="skipPhase('words')">Skip → Think Phase</button>
         </div>
 
         <div id="think-tab" class="tab">
             <h1>Think</h1>
             <div class="timer-display" id="think-time">10</div>
-            <p>Keep the words in your head.</p>
+            <p style="font-size: 1.6rem;">Keep the words in your head.</p>
         </div>
 
         <div id="write-tab" class="tab">
             <h1>Write!</h1>
             <div class="timer-display" id="write-time">60</div>
-            <p>Write everything you remember on the paper.</p>
+            <p style="font-size: 1.6rem;">Write everything you remember on the paper.</p>
+            <button class="skip-btn" onclick="skipPhase('write')">Skip → Check Results</button>
         </div>
 
         <div id="check-tab" class="tab">
             <h1>Check Results</h1>
-            <p>Compare the paper to this list:</p>
+            <p style="font-size: 1.3rem;">Compare the paper to this list:</p>
             <div id="check-list"></div>
             <button id="next-btn" onclick="nextRound()">Next Round</button>
         </div>
 
         <div id="finish-tab" class="tab">
             <h1>Experiment Done</h1>
-            <p>All 3 rounds complete. Thank the subject!</p>
+            <p style="font-size: 1.6rem;">All 3 rounds complete. Thank the subject!</p>
+            <p style="font-size: 1.2rem; color: #888; margin-top: 20px;">
+                Musician: <span id="musician-display" style="color: #00ce7c;">---</span><br>
+                Genres tested: <span id="genres-tested" style="color: #00ce7c;">---</span>
+            </p>
             <button onclick="location.reload()">Reset for New Person</button>
         </div>
     </div>
@@ -70,12 +185,36 @@ const wordsMaster = ["Anchor", "Apple", "Bacon", "Basket", "Beaver", "Blanket", 
 
 let round = 1;
 let currentWords = [];
+let isMusician = null;
 let genres = ["drums", "lofi", "pop", "metal", "edm"];
 let chosenGenres = ["silence"]; // Round 1 is always silence
+let activeInterval = null; // Track current timer to clear it when skipping
+let currentAudio = null; // Track current audio
 
 // Shuffle and pick 2 random genres for Round 2 and 3
 let shuffledExtra = genres.sort(() => 0.5 - Math.random()).slice(0, 2);
 chosenGenres.push(...shuffledExtra);
+
+const genreNames = {
+    "silence": "SILENCE",
+    "drums": "DRUMS",
+    "lofi": "LO-FI",
+    "pop": "POP",
+    "metal": "HEAVY METAL",
+    "edm": "EDM"
+};
+
+function setMusician(answer) {
+    isMusician = answer;
+    switchTab('start');
+}
+
+function updateGenreDisplay() {
+    const currentGenre = chosenGenres[round - 1];
+    const display = document.getElementById('genre-display');
+    display.textContent = `Genre: ${genreNames[currentGenre]}`;
+    display.style.display = 'inline-block';
+}
 
 function switchTab(tabId) {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -86,19 +225,26 @@ function startTimer(duration, displayId, onEnd) {
     let timeLeft = duration;
     const display = document.getElementById(displayId);
     display.textContent = timeLeft;
-    let interval = setInterval(() => {
+    
+    // Clear any existing timer
+    if (activeInterval) clearInterval(activeInterval);
+    
+    activeInterval = setInterval(() => {
         timeLeft--;
         display.textContent = timeLeft;
         if (timeLeft <= 0) {
-            clearInterval(interval);
+            clearInterval(activeInterval);
+            activeInterval = null;
             onEnd();
         }
     }, 1000);
 }
 
 function startTest() {
+    updateGenreDisplay();
+    
     const currentGenre = chosenGenres[round - 1];
-    const audio = document.getElementById("audio-" + currentGenre);
+    currentAudio = document.getElementById("audio-" + currentGenre);
     
     // Reset words
     currentWords = wordsMaster.sort(() => 0.5 - Math.random()).slice(0, 15);
@@ -106,26 +252,69 @@ function startTest() {
     document.getElementById("check-list").innerHTML = currentWords.map(w => `<div class="word-item">${w}</div>`).join('');
     
     switchTab('words');
-    if(audio) audio.play();
+    if(currentAudio) currentAudio.play();
 
     startTimer(30, "words-time", () => {
         switchTab('think');
         startTimer(10, "think-time", () => {
             switchTab('write');
             startTimer(60, "write-time", () => {
-                if(audio) { audio.pause(); audio.currentTime = 0; }
+                if(currentAudio) { currentAudio.pause(); currentAudio.currentTime = 0; }
                 switchTab('check');
-                if (round === 3) document.getElementById("next-btn").innerText = "Finish Experiment";
+                if (round === 3) {
+                    document.getElementById("next-btn").innerText = "Finish Experiment";
+                    // Update final summary
+                    document.getElementById("musician-display").innerText = isMusician ? "YES" : "NO";
+                    document.getElementById("genres-tested").innerText = 
+                        chosenGenres.map(g => genreNames[g]).join(", ");
+                }
             });
         });
     });
+}
+
+function skipPhase(phase) {
+    // Clear the active timer
+    if (activeInterval) {
+        clearInterval(activeInterval);
+        activeInterval = null;
+    }
+    
+    if (phase === 'words') {
+        // Skip from memorize to think
+        switchTab('think');
+        startTimer(10, "think-time", () => {
+            switchTab('write');
+            startTimer(60, "write-time", () => {
+                if(currentAudio) { currentAudio.pause(); currentAudio.currentTime = 0; }
+                switchTab('check');
+                if (round === 3) {
+                    document.getElementById("next-btn").innerText = "Finish Experiment";
+                    document.getElementById("musician-display").innerText = isMusician ? "YES" : "NO";
+                    document.getElementById("genres-tested").innerText = 
+                        chosenGenres.map(g => genreNames[g]).join(", ");
+                }
+            });
+        });
+    } else if (phase === 'write') {
+        // Skip from write to check
+        if(currentAudio) { currentAudio.pause(); currentAudio.currentTime = 0; }
+        switchTab('check');
+        if (round === 3) {
+            document.getElementById("next-btn").innerText = "Finish Experiment";
+            document.getElementById("musician-display").innerText = isMusician ? "YES" : "NO";
+            document.getElementById("genres-tested").innerText = 
+                chosenGenres.map(g => genreNames[g]).join(", ");
+        }
+    }
 }
 
 function nextRound() {
     if (round < 3) {
         round++;
         document.getElementById("round-title").innerText = `Round ${round} of 3`;
-        document.getElementById("next-genre-text").innerText = "Next Genre: " + chosenGenres[round-1].toUpperCase();
+        const nextGenreName = genreNames[chosenGenres[round-1]];
+        document.getElementById("next-genre-text").innerText = "Next Genre: " + nextGenreName;
         switchTab('start');
     } else {
         switchTab('finish');
